@@ -1,7 +1,6 @@
 ---
 
-private_ip: "{{ ansible_eth1.ipv4.address }}"
 centos_iso_url: "http://mirror.rackspace.com/CentOS/7.0.1406/isos/x86_64/CentOS-7.0-1406-x86_64-DVD.iso"
 centos_iso: "CentOS-7.0-1406-x86_64-DVD.iso"
 pxe_server_ip: "192.168.0.1"
-ks_path: "{{ pxe_server_ip }}/ks.cfg"
+rootpw: "changemeimmediately"

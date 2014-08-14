@@ -5,7 +5,7 @@ menu title ########## PXE Boot Menu ##########
 label 1
    menu label ^1) Install CentOS 7
    kernel centos7/vmlinuz
-   append initrd=centos7/initrd.img method=http://{{ pxe_server_ip }}/centos7 devfs=nomount console=ttyS1,115200 console=tty1 ks=http://{{ ks_path }}
+   append initrd=centos7/initrd.img method=http://{{ pxe_server_ip }}/pxe/centos7 devfs=nomount console=ttyS1,115200 console=tty1 ks=http://{{ pxe_server_ip }}/pxe/{{ boot_target_hostname }}.cfg
 
 label 2
    menu label ^2) Boot from local drive

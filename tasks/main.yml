@@ -93,3 +93,8 @@
      src: httpd_pxeboot.conf
      dest: /etc/httpd/conf.d/pxeboot.conf
    notify: restart apache
+
+ - name: template kickstart file into apaches pxe dir
+   template:
+     src: ks.cfg
+     dest: "/var/pxe/{{ boot_target_hostname }}.cfg"
