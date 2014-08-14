@@ -1,0 +1,13 @@
+---
+galaxy_info:
+  author: "Steffen Prince"
+  description: Create a PXE Server for Centos 7
+  license: MIT
+  min_ansible_version: 1.4
+  platforms:
+  - name: Centos
+    versions:
+      - 7
+  categories:
+    - clustering
+dependencies: []

@@ -1,0 +1,14 @@
+ - name: restart xinetd
+   service:
+     name: xinetd
+     state: restarted
+
+ - name: restart httpd
+   service:
+     name: httpd
+     state: restarted
+
+ - name: restart dhcpd
+   service:
+     name: dhcpd
+     state: restarted

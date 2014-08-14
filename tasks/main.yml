@@ -1,0 +1,75 @@
+# PXE Server Role
+# https://access.redhat.com/documentation/en-US/Red_Hat_Enterprise_Linux/7/html/Installation_Guide/chap-installation-server-setup.html
+# More at: http://geekpeek.net/pxe-server-centos-6/
+---
+
+ - name: install packages required for PXE server
+   yum: pkg={{ item }}
+        state=present
+   with_items:
+     - tftp-server
+     - syslinux
+     - httpd
+     - dhcp
+
+ - name: enable tftp
+   lineinfile:
+     dest: /etc/xinetd.d/tftp
+     regexp: ^disable
+     line: DNS1={{ private_ip }}
+   notify: restart xinetd
+
+ - name: make pxe directory for centos7
+   file:
+     path: "{{ item }}"
+     state: directory
+   with_items:
+     - /var/images
+     - /var/pxe/centos7
+     - /var/lib/tftpboot/centos7
+
+ - name: download iso
+   get_url:
+     url: "{{ centos_iso_url }}"
+     dest: "/var/images/{{ centos_iso }}"
+
+ - name: create mount for iso
+   file: 
+     path: /mnt/centos7
+     state: directory
+
+ - name: mount iso
+   command: "mount -t iso9660 -o loop,ro {{ centos_iso }} /mnt/centos7"
+
+ #- name: extract pxelinux.0 from syslinux
+ #  command: rpm2cpio syslinux-version-architecture.rpm | cpio -dimv /tmp
+ #  creates: /tmp/
+
+ - name: rsync iso files to pxe directory
+   command: rsync -a /mnt/centos7/ /var/pxe/centos7
+
+ - name: rsync vmlinuz
+   command: rsync -a /var/pxe/centos7/images/pxeboot/vmlinuz /var/lib/tftpboot/centos7/
+
+ - name: rsync initrd.img
+   command: rsync /var/pxe/centos7/images/pxeboot/initrd.img /var/lib/tftpboot/centos7/ 
+
+ - name: rsync menu.c32
+   command: rsync -a /usr/share/syslinux/menu.c32 /var/lib/tftpboot/ 
+
+ - name: template pxelinux config
+   template:
+     src: default
+     dest: /var/lib/tftpboot/pxelinux/default
+
+ - name: template pxeboot.conf for apache
+   template:
+     src: httpd_pxeboot.conf
+     dest: /etc/httpd/conf.d/pxeboot.conf
+   notify: restart apache
+
+ - name: template dhcpd.conf
+   template:
+     src: dhcpd.conf
+     dest: /etc/dhcp/dhcpd.conf
+   notify: restart dhcpd
