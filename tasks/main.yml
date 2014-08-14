@@ -39,7 +39,7 @@
      state: directory
 
  - name: mount iso
-   command: "mount -t iso9660 -o loop,ro {{ centos_iso }} /mnt/centos7"
+   command: "mount -t iso9660 -o loop,ro /var/images/{{ centos_iso }} /mnt/centos7"
 
  #- name: extract pxelinux.0 from syslinux
  #  command: rpm2cpio syslinux-version-architecture.rpm | cpio -dimv /tmp
