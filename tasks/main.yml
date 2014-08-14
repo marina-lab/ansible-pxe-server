@@ -52,7 +52,7 @@
  - name: mount iso
    command: "mount -t iso9660 -o loop,ro /var/images/{{ centos_iso }} /mnt/centos7"
    args:
-     creates: /mnt/centos7
+     creates: /mnt/centos7/.treeinfo
 
  # Procedure 21.1, Step 4
  - name: rsync iso files to pxe directory
@@ -64,7 +64,7 @@
      && rpm2cpio /var/pxe/centos7/Packages/syslinux-4.05-8.el7.x86_64.rpm \
      | cpio -dimv
    args:
-     creates: /tmp/cpio-root
+     creates: /tmp/cpio-root/usr/share/syslinux/pxelinux.0
 
 
  # Procedure 21.1, Step 5
