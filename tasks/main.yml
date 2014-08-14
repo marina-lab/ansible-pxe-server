@@ -19,7 +19,7 @@
    lineinfile:
      dest: /etc/xinetd.d/tftp
      regexp: ^disable
-     line: DNS1={{ private_ip }}
+     line: DNS1={{ pxe_server_ip }}
    notify: restart xinetd
 
  - name: make required directories for centos7 pxe
