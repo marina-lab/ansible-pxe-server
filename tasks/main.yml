@@ -1,17 +1,20 @@
 # PXE Server Role
 # https://access.redhat.com/documentation/en-US/Red_Hat_Enterprise_Linux/7/html/Installation_Guide/chap-installation-server-setup.html
-# More at: http://geekpeek.net/pxe-server-centos-6/
+#
+# Commands will be labeled by section numbers taken from
+# 21.1.1. Configuring a PXE Server for BIOS-based Clients
 ---
 
+ # Procedure 21.1, Step 1
  - name: install packages required for PXE server
    yum: pkg={{ item }}
         state=present
    with_items:
      - tftp-server
-     - syslinux
      - httpd
      - dhcp
 
+ # Procedure 21.1, Step 2
  - name: enable tftp
    lineinfile:
      dest: /etc/xinetd.d/tftp
@@ -19,7 +22,7 @@
      line: DNS1={{ private_ip }}
    notify: restart xinetd
 
- - name: make pxe directory for centos7
+ - name: make required directories for centos7 pxe
    file:
      path: "{{ item }}"
      state: directory
@@ -27,6 +30,14 @@
      - /var/images
      - /var/pxe/centos7
      - /var/lib/tftpboot/centos7
+     - /tmp/cpio-root
+
+ # Procedure 21.1, Step 3
+ - name: template dhcpd.conf
+   template:
+     src: dhcpd.conf
+     dest: /etc/dhcp/dhcpd.conf
+   notify: restart dhcpd
 
  - name: download iso
    get_url:
@@ -40,36 +51,45 @@
 
  - name: mount iso
    command: "mount -t iso9660 -o loop,ro /var/images/{{ centos_iso }} /mnt/centos7"
+   args:
+     creates: /mnt/centos7
 
- #- name: extract pxelinux.0 from syslinux
- #  command: rpm2cpio syslinux-version-architecture.rpm | cpio -dimv /tmp
- #  creates: /tmp/
-
+ # Procedure 21.1, Step 4
  - name: rsync iso files to pxe directory
    command: rsync -a /mnt/centos7/ /var/pxe/centos7
 
- - name: rsync vmlinuz
-   command: rsync -a /var/pxe/centos7/images/pxeboot/vmlinuz /var/lib/tftpboot/centos7/
+ - name: extract syslinux rpm into tmp directory
+   shell: >
+     cd /tmp/cpio-root \
+     && rpm2cpio /var/pxe/centos7/Packages/syslinux-4.05-8.el7.x86_64.rpm \
+     | cpio -dimv
+   args:
+     creates: /tmp/cpio-root
 
- - name: rsync initrd.img
-   command: rsync /var/pxe/centos7/images/pxeboot/initrd.img /var/lib/tftpboot/centos7/ 
 
- - name: rsync menu.c32
-   command: rsync -a /usr/share/syslinux/menu.c32 /var/lib/tftpboot/ 
+ # Procedure 21.1, Step 5
+ - name: rsync pxelinux.0 from extracted rpm into /var/lib/tftpboot/centos7
+   command: >
+     rsync -a /tmp/cpio-root/usr/share/syslinux/pxelinux.0 /var/pxe/centos7
 
+
+ # Procedure 21.1, Step 6
  - name: template pxelinux config
    template:
      src: default
-     dest: /var/lib/tftpboot/pxelinux/default
+     dest: /var/lib/tftpboot/centos7/default
+
+ # Procedure 21.1, Step 7
+ - name: rsync vmlinuz
+   command: >
+     rsync -a /var/pxe/centos7/images/pxeboot/vmlinuz /var/lib/tftpboot/centos7/
+
+ - name: rsync initrd.img
+   command: >
+     rsync /var/pxe/centos7/images/pxeboot/initrd.img /var/lib/tftpboot/centos7/
 
  - name: template pxeboot.conf for apache
    template:
      src: httpd_pxeboot.conf
      dest: /etc/httpd/conf.d/pxeboot.conf
    notify: restart apache
-
- - name: template dhcpd.conf
-   template:
-     src: dhcpd.conf
-     dest: /etc/dhcp/dhcpd.conf
-   notify: restart dhcpd
