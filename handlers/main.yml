@@ -3,7 +3,7 @@
      name: xinetd
      state: restarted
 
- - name: restart httpd
+ - name: restart apache
    service:
      name: httpd
      state: restarted
