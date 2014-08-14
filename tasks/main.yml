@@ -28,9 +28,14 @@
      state: directory
    with_items:
      - /var/images
-     - /var/pxe/centos7
      - /var/lib/tftpboot/centos7
      - /tmp/cpio-root
+
+ - name: make directory, readable by apache
+   file:
+     path: /var/pxe/centos7
+     state: directory
+     group: apache
 
  # Procedure 21.1, Step 3
  - name: template dhcpd.conf
@@ -57,6 +62,9 @@
  # Procedure 21.1, Step 4
  - name: rsync iso files to pxe directory
    command: rsync -a /mnt/centos7/ /var/pxe/centos7
+
+ - name: chown /var/pxe to group apache
+   command: chown -R root:apache /var/pxe
 
  - name: extract syslinux rpm into tmp directory
    shell: >
@@ -98,3 +106,4 @@
    template:
      src: ks.cfg
      dest: "/var/pxe/{{ boot_target_hostname }}.cfg"
+     mode: 0640
